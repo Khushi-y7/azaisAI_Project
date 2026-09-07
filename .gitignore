@@ -1,0 +1,3 @@
+# Per-session counter/debug state used by the .agent-logs capture hooks.
+# Not part of the submission log itself - .agent-logs/ is committed in full.
+.claude/state/
