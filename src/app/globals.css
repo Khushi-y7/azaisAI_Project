@@ -117,3 +117,28 @@ body {
     animation: none;
   }
 }
+
+@keyframes glow-pulse {
+  0%, 100% {
+    text-shadow:
+      0 0 6px color-mix(in srgb, var(--accent) 55%, transparent),
+      0 0 14px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  50% {
+    text-shadow:
+      0 0 14px color-mix(in srgb, var(--accent) 80%, transparent),
+      0 0 30px color-mix(in srgb, var(--accent) 55%, transparent);
+  }
+}
+
+.text-glow {
+  color: var(--accent);
+  animation: glow-pulse 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .text-glow {
+    animation: none;
+    text-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
+  }
+}

@@ -148,9 +148,8 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
       <div className="space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
         <div>
           <h1 className="text-lg font-semibold">Video Studio</h1>
-          <p className="text-xs text-text-muted mt-1">
-            {VIDEO_MODEL.label} · via {VIDEO_MODEL.provider} · real generation, not a mock
-          </p>
+          <p className="text-[11px] text-text-muted uppercase tracking-wide mt-1.5">Generate video</p>
+          <p className="text-base font-semibold text-glow mt-0.5">tokens on me, spam it.</p>
         </div>
 
         <div>
