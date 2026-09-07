@@ -5,19 +5,19 @@ import { useState } from "react";
 const FAQS = [
   {
     q: "What is AzaisAi?",
-    a: "AzaisAi is a rebuild of the original azaisai.com product — an AI video and image generation platform. This version runs on real, working, free-tier providers (Sana for images, Nova Reel for video, both via Pollinations) instead of the original's licensed Sora/Veo/Runway access.",
+    a: "AzaisAi is a rebuild of the original azaisai.com product — an AI video and image generation platform. This version runs on real, working, free-tier providers (Sana for images via Pollinations, LTX for video via Pixazo) instead of the original's licensed Sora/Veo/Runway access.",
   },
   {
     q: "What AI models do you use?",
-    a: "One image model (Sana) and one video model (Nova Reel). That's genuinely what's available on the free tier of the underlying provider — we'd rather show one real model honestly than a grid of names that don't actually run.",
+    a: "One image model (Sana, via Pollinations) and one video model (LTX by Lightricks, via Pixazo). That's genuinely what's available for free — we'd rather show two real models honestly than a grid of names that don't actually run.",
   },
   {
-    q: "Why is video generation sometimes unavailable?",
-    a: "Nova Reel requires a funded balance on the provider side. The free API key this demo runs on doesn't have one, so video generation will show a clear \"needs a funded balance\" message instead of a fake result. Image generation is fully free and always works.",
+    q: "Is video generation actually free?",
+    a: "Yes — unlike our first attempt at this (Pollinations' video gateway, which turned out to need a funded paid balance despite looking free), LTX via Pixazo is genuinely free on its preview tier, no card required. It can still be slow (generation typically takes under two minutes) or occasionally unavailable if the provider changes its terms.",
   },
   {
     q: "How do credits work?",
-    a: "Images cost 1 credit flat. Video costs 1 credit per second of requested duration (4-8s). New accounts get 8 free credits on signup — enough for 8 images, or one short video once video is funded.",
+    a: "Images cost 1 credit flat. Video costs 1 credit per second of requested duration (6-10s). New accounts get 8 free credits on signup — enough for 8 images, or most of one short video.",
   },
   {
     q: "Why did my generation fail?",

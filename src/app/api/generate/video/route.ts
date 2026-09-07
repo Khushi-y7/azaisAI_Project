@@ -3,13 +3,14 @@ import { z } from "zod";
 import { getSession } from "@/lib/session";
 import { db } from "@/lib/db";
 import { holdCredits, refundCredits, recordCharge, InsufficientCreditsError } from "@/lib/credits";
-import { generateVideo } from "@/lib/pollinations";
-import { VIDEO_MODEL, findMotionPreset } from "@/lib/models";
+import { generateVideo } from "@/lib/pixazo";
+import { VIDEO_MODEL, VIDEO_DURATIONS, findMotionPreset, findVideoAspectRatio } from "@/lib/models";
 
 const bodySchema = z.object({
   prompt: z.string().trim().min(3).max(1000),
-  duration: z.number().int().min(4).max(8),
+  duration: z.number().int().refine((d) => (VIDEO_DURATIONS as readonly number[]).includes(d)),
   motionId: z.string().nullable(),
+  aspectRatioId: z.string(),
 });
 
 export async function POST(req: Request) {
@@ -22,8 +23,9 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Describe what you want to see first." }, { status: 400 });
   }
-  const { prompt, duration, motionId } = parsed.data;
+  const { prompt, duration, motionId, aspectRatioId } = parsed.data;
   const motion = findMotionPreset(motionId);
+  const aspectRatio = findVideoAspectRatio(aspectRatioId);
   const cost = duration * VIDEO_MODEL.costPerSecond;
 
   try {
@@ -41,14 +43,14 @@ export async function POST(req: Request) {
       type: "video",
       model: VIDEO_MODEL.id,
       prompt,
-      paramsJson: JSON.stringify({ duration, motionId }),
+      paramsJson: JSON.stringify({ duration, motionId, aspectRatioId }),
       status: "processing",
       costCredits: cost,
     },
   });
 
   const finalPrompt = motion ? `${prompt}, ${motion.modifier}` : prompt;
-  const result = await generateVideo({ prompt: finalPrompt });
+  const result = await generateVideo({ prompt: finalPrompt, duration, aspectRatio: aspectRatio.id });
 
   if (result.ok && result.url) {
     await db.generation.update({

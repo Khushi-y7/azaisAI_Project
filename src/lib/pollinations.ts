@@ -66,40 +66,6 @@ export async function generateImage(params: {
   }
 }
 
-export async function generateVideo(params: {
-  prompt: string;
-}): Promise<GenerateResult> {
-  const encoded = encodeURIComponent(params.prompt);
-  const qs = new URLSearchParams({ model: "nova-reel" });
-  const url = `https://gen.pollinations.ai/video/${encoded}?${qs.toString()}`;
-
-  try {
-    const res = await fetch(url, {
-      headers: authHeaders(),
-      signal: AbortSignal.timeout(180_000),
-    });
-    if (!res.ok) {
-      if (res.status === 402) {
-        return {
-          ok: false,
-          error: "Video generation needs a funded Pollinations balance (this key's free tier doesn't cover it). Top up at enter.pollinations.ai/pollen.",
-        };
-      }
-      const text = await res.text().catch(() => "");
-      return { ok: false, error: `Generation failed (${res.status}): ${text.slice(0, 200)}` };
-    }
-    const contentType = res.headers.get("content-type") ?? "";
-    if (!contentType.startsWith("video/")) {
-      return { ok: false, error: "The provider didn't return a video. Try a different prompt." };
-    }
-    const buf = Buffer.from(await res.arrayBuffer());
-    const savedUrl = await saveToPublic(buf, "mp4");
-    return { ok: true, url: savedUrl };
-  } catch (err) {
-    return {
-      ok: false,
-      error: err instanceof Error ? err.message : "Unknown error generating the video.",
-      retryable: true,
-    };
-  }
-}
+// Video generation moved to lib/pixazo.ts (Pollinations' only real video
+// model, Nova Reel, turned out to require a funded paid balance - see the
+// commit history / docs/research/notes.md. Pixazo's LTX is actually free.

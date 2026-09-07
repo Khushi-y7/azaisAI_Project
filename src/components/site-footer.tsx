@@ -16,7 +16,7 @@ export function SiteFooter() {
             simulation.
           </p>
           <div className="flex gap-2 mt-4">
-            {["Sana", "Nova Reel"].map((m) => (
+            {["Sana", "LTX"].map((m) => (
               <span
                 key={m}
                 className="text-[11px] font-mono text-text-muted border border-border rounded-full px-2 py-1"

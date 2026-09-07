@@ -1,7 +1,7 @@
 const DIFFERENTIATORS = [
   {
     title: "One real model, honestly labeled",
-    body: "No grid of provider logos we don't actually have access to — Sana and Nova Reel, via Pollinations, disclosed plainly.",
+    body: "No grid of provider logos we don't actually have access to — Sana (via Pollinations) and LTX (via Pixazo), disclosed plainly.",
   },
   {
     title: "No technical setup",
@@ -50,7 +50,7 @@ export default function AboutPage() {
         </div>
         <div>
           <p className="text-xs font-mono uppercase text-accent mb-2">Video</p>
-          <p className="text-sm">Nova Reel <span className="text-text-muted">— via Pollinations (needs a funded balance)</span></p>
+          <p className="text-sm">LTX <span className="text-text-muted">— via Pixazo, free tier</span></p>
         </div>
       </div>
 

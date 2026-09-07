@@ -1,9 +1,9 @@
-// Real backends only - verified directly against the live Pollinations API.
-// No fake model SKUs: where the original product offered a grid of providers
-// (Sora/Veo/Runway), we have exactly one real free image model and one real
-// (paid-balance) video model, so the creative-choice UI leans on style
-// presets and generation params instead of a model grid that would just be
-// theater. See docs/research/notes.md for what was actually confirmed.
+// Real backends only. No fake model SKUs: where the original product
+// offered a grid of providers (Sora/Veo/Runway), we have exactly one real
+// free image model (Sana, via Pollinations) and one real free video model
+// (LTX, via Pixazo), so the creative-choice UI leans on style presets and
+// generation params instead of a model grid that would just be theater.
+// See docs/research/notes.md for what was actually confirmed.
 
 export const IMAGE_MODEL = {
   id: "sana",
@@ -31,14 +31,24 @@ export const IMAGE_ASPECT_RATIOS = [
 ] as const;
 
 export const VIDEO_MODEL = {
-  id: "nova-reel",
-  label: "Nova Reel",
-  provider: "Amazon (via Pollinations)",
+  id: "ltx",
+  label: "LTX",
+  provider: "Lightricks (via Pixazo)",
   costPerSecond: 1,
-  badge: "Requires funded balance",
+  etaSeconds: 60,
 } as const;
 
-export const VIDEO_DURATIONS = [4, 6, 8] as const;
+// Pixazo's LTX only accepts these exact duration values (or "auto").
+export const VIDEO_DURATIONS = [6, 8, 10] as const;
+
+export const VIDEO_ASPECT_RATIOS = [
+  { id: "16:9", label: "16:9" },
+  { id: "9:16", label: "9:16" },
+] as const;
+
+export function findVideoAspectRatio(id: string) {
+  return VIDEO_ASPECT_RATIOS.find((a) => a.id === id) ?? VIDEO_ASPECT_RATIOS[0];
+}
 
 export const MOTION_PRESETS = [
   {

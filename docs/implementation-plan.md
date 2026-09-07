@@ -50,10 +50,11 @@ Runway access, and that swap is disclosed in the UI copy, not hidden.
 | Storage | Keep the URL Pollinations returns | No blob/object storage service to configure; documented tradeoff (see Generation flow) |
 | Payments | **Dropped** — user asked to skip Stripe | `/upgrade` is a real pricing page with working buttons that say "demo — no checkout" rather than faking a charge |
 | Image generation | Pollinations `image.pollinations.ai` | Free, no key needed for basic use, reliable |
-| Video generation | Pollinations `gen.pollinations.ai` (Seedance / Veo-alpha / Wan-Fast) | Only realistic free path to actual text-to-video; treated as best-effort (alpha), with a graceful failure state — not a hard dependency for the demo to "work" |
+| Video generation | Pixazo `gateway.pixazo.ai/ltx-video` (LTX by Lightricks) | Actually free on Pixazo's preview tier (unlike Pollinations' video gateway, which turned out to require a funded paid balance despite looking free — see below). Submit-then-poll REST API, ~1-2 min per clip |
 | Hosting | Vercel | Instant public URL, env vars for secrets, GitHub-connected auto-deploy |
 
-**Secrets:** only `POLLINATIONS_API_KEY` and a locally-generated session secret, both in a
+**Secrets:** `POLLINATIONS_API_KEY`, `PIXAZO_API_KEY`, and a locally-generated session
+secret, all in a
 gitignored `.env.local` — never in the repo or in chat. [`.env.example`](../.env.example)
 documents the variable names with no values. (Note: the key shared in chat during
 planning is treated as burned — asked the user to rotate it — and is not used for real
@@ -89,11 +90,15 @@ models that don't actually exist on this gateway):
   Pollinations." No model *grid* to fake, so the creative-choice UI leans on style
   presets (prompt modifiers) instead, which is what the original's style picker
   amounted to anyway.
-- **Video:** exactly one real model on the gateway, `nova-reel` (Amazon Nova Reel) at
-  ~0.08 pollen/sec — and it requires a **funded pollen balance**, confirmed via a live
-  402 response on our free key. Not actually free despite being reachable without a
-  paid Pollinations plan. Built for real, with an honest "needs a funded balance" state
-  rather than faking output — the user's call whether to top up a small amount.
+- **Video:** first tried Pollinations' `nova-reel` (Amazon Nova Reel) — reachable
+  without a paid Pollinations plan, but a live call returned `402 Insufficient balance`,
+  meaning it needs a funded pollen balance despite looking free. Swapped to **Pixazo**
+  (`gateway.pixazo.ai/ltx-video/v1/text-to-video`), whose LTX model is genuinely free
+  on its preview tier. Getting the exact endpoint right took real trial and error —
+  docs/search results confidently listed models (`ltx`, `ltx-2-5`) and paths that
+  returned 404; the actual working slug (`ltx-video`, under a `/v1/` path) was found by
+  testing directly against the live API until a real job queued, then polling it to
+  completion end-to-end before wiring it into the app.
 
 ## Feature priority
 
@@ -121,13 +126,14 @@ content-moderation pipeline (rely on upstream providers' own filters).
 1. Client submits prompt + params to a server route.
 2. Server checks auth + credit balance, creates a `generations` row (`processing`),
    places a credit hold.
-3. Server calls Pollinations (image: fast, synchronous; video: same call shape but
-   slow — UI shows the model's stated ETA as a countdown, matching the original's
-   "~45s" style copy).
-4. On success: download the result, re-upload to Supabase Storage (Pollinations URLs
-   aren't guaranteed permanent), mark `succeeded`, finalize the credit charge, return
-   the stored URL to the client.
-5. On failure/timeout: mark `failed`, release the hold (no charge), show a retry state.
+3. Server calls the provider. Image (Pollinations/Sana) is synchronous - one request,
+   one response. Video (Pixazo/LTX) is submit-then-poll: the server posts the job, then
+   polls its status endpoint every few seconds (up to ~3 min) until `COMPLETED` or
+   `FAILED` - the client just sees one long-pending request with a loading state.
+4. On success: download the result and save it under `public/generated/` (provider
+   URLs aren't guaranteed permanent), mark `succeeded`, finalize the credit charge,
+   return the stored URL to the client.
+5. On failure/timeout: mark `failed`, release the hold (no charge), show the error.
 
 ## Still open
 

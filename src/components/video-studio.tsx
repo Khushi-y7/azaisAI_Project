@@ -1,20 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { VIDEO_MODEL, VIDEO_DURATIONS, MOTION_PRESETS } from "@/lib/models";
+import {
+  VIDEO_MODEL,
+  VIDEO_DURATIONS,
+  VIDEO_ASPECT_RATIOS,
+  MOTION_PRESETS,
+  findVideoAspectRatio,
+} from "@/lib/models";
+
+const FRAME_MARGIN = 32;
 
 export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
-  const [duration, setDuration] = useState<number>(6);
+  const [duration, setDuration] = useState<number>(VIDEO_DURATIONS[0]);
+  const [aspectRatioId, setAspectRatioId] = useState<string>("16:9");
   const [motionId, setMotionId] = useState<string | null>("arc-orbit");
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "unavailable">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "error" | "not-configured">("idle");
   const [error, setError] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
 
+  const aspectRatio = findVideoAspectRatio(aspectRatioId);
+  const ratio = aspectRatio.id === "16:9" ? 16 / 9 : 9 / 16;
   const cost = duration * VIDEO_MODEL.costPerSecond;
+
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [frameSize, setFrameSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+    function recompute() {
+      const availableW = Math.max(panel!.clientWidth - FRAME_MARGIN, 0);
+      const availableH = Math.max(panel!.clientHeight - FRAME_MARGIN, 0);
+      if (availableW <= 0 || availableH <= 0) return;
+      if (availableW / availableH > ratio) {
+        setFrameSize({ width: availableH * ratio, height: availableH });
+      } else {
+        setFrameSize({ width: availableW, height: availableW / ratio });
+      }
+    }
+    recompute();
+    const observer = new ResizeObserver(recompute);
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, [ratio]);
 
   async function handleGenerate() {
     if (!loggedIn) {
@@ -32,13 +64,13 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
       const res = await fetch("/api/generate/video", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, duration, motionId }),
+        body: JSON.stringify({ prompt, duration, motionId, aspectRatioId }),
       });
       const data = await res.json();
       if (!res.ok) {
-        const unavailable = typeof data.error === "string" && data.error.includes("funded Pollinations balance");
+        const notConfigured = typeof data.error === "string" && data.error.includes("PIXAZO_API_KEY is missing");
         setError(data.error ?? "Generation failed.");
-        setStatus(unavailable ? "unavailable" : "error");
+        setStatus(notConfigured ? "not-configured" : "error");
         return;
       }
       setResultUrl(data.url);
@@ -57,7 +89,7 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
         <div>
           <h1 className="text-lg font-semibold">Video Studio</h1>
           <p className="text-xs text-text-muted mt-1">
-            {VIDEO_MODEL.label} · via {VIDEO_MODEL.provider}
+            {VIDEO_MODEL.label} · via {VIDEO_MODEL.provider} · real generation, not a mock
           </p>
         </div>
 
@@ -73,6 +105,25 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
             placeholder="A neon-lit city drone shot with slow cinematic movement and bold typography overlays."
             className="w-full rounded-lg bg-surface-2 border border-border px-3.5 py-2.5 text-sm outline-none focus:border-accent transition-colors resize-none"
           />
+        </div>
+
+        <div>
+          <p className="text-xs font-mono uppercase tracking-wide text-text-muted mb-2">Aspect ratio</p>
+          <div className="flex gap-2">
+            {VIDEO_ASPECT_RATIOS.map((a) => (
+              <button
+                key={a.id}
+                onClick={() => setAspectRatioId(a.id)}
+                className={`rounded-lg border px-3.5 py-2 text-xs font-mono transition-colors ${
+                  aspectRatioId === a.id
+                    ? "border-accent bg-accent-soft text-accent"
+                    : "border-border text-text-muted hover:text-text"
+                }`}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div>
@@ -123,7 +174,7 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
           </div>
         </div>
 
-        {error && status !== "unavailable" && <p className="text-sm text-critical">{error}</p>}
+        {error && status === "error" && <p className="text-sm text-critical">{error}</p>}
 
         <div className="flex items-center justify-between pt-2 border-t border-border">
           <span className="text-sm text-text-muted">Estimated cost</span>
@@ -140,41 +191,60 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
         </button>
       </div>
 
-      {/* Right panel */}
-      <div className="glass-card min-h-[420px] lg:h-full lg:min-h-0 flex items-center justify-center relative overflow-hidden">
-        {status === "loading" && (
-          <div className="flex flex-col items-center gap-3 text-text-muted px-6 text-center">
-            <div className="w-8 h-8 border-2 border-border border-t-accent rounded-full animate-spin" />
-            <p className="text-sm">Generating with {VIDEO_MODEL.label} — this can take a while</p>
-          </div>
-        )}
+      {/* Right panel: backdrop, always fills the viewport height */}
+      <div ref={panelRef} className="glass-card lg:h-full lg:min-h-0 min-h-[420px] flex items-center justify-center relative overflow-hidden">
+        <div
+          className="relative rounded-lg overflow-hidden bg-surface-2 border border-border transition-[width,height] duration-200"
+          style={
+            frameSize.width > 0
+              ? { width: frameSize.width, height: frameSize.height }
+              : { width: "90%", height: "90%" }
+          }
+        >
+          {status === "loading" && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-text-muted px-6 text-center">
+              <div className="w-8 h-8 border-2 border-border border-t-accent rounded-full animate-spin" />
+              <p className="text-sm">
+                Generating with {VIDEO_MODEL.label} — usually under a minute, sometimes longer
+              </p>
+            </div>
+          )}
 
-        {status !== "loading" && resultUrl && (
-          <video src={resultUrl} controls className="w-full h-full object-contain" />
-        )}
+          {status !== "loading" && resultUrl && (
+            <video src={resultUrl} controls className="absolute inset-0 w-full h-full object-cover" />
+          )}
 
-        {status !== "loading" && !resultUrl && status === "unavailable" && (
-          <div className="px-8 text-center">
-            <p className="text-sm font-medium text-warn mb-2">Video generation needs a funded balance</p>
-            <p className="text-xs text-text-muted max-w-sm mx-auto">
-              {VIDEO_MODEL.label} runs on Pollinations&apos; paid tier — the free key
-              this demo uses doesn&apos;t cover it. This is a real, working
-              integration, just gated behind a small top-up at{" "}
-              <a href="https://enter.pollinations.ai/pollen" target="_blank" rel="noreferrer" className="text-accent hover:underline">
-                enter.pollinations.ai/pollen
-              </a>. No credits were charged for this attempt.
-            </p>
-            <Link href="/generate/image" className="inline-block mt-4 text-xs text-accent hover:underline">
-              Try Image Generation instead — fully free →
-            </Link>
-          </div>
-        )}
+          {status !== "loading" && !resultUrl && status === "not-configured" && (
+            <div className="absolute inset-0 flex items-center justify-center px-8 text-center">
+              <div>
+                <p className="text-sm font-medium text-warn mb-2">Video generation isn&apos;t configured</p>
+                <p className="text-xs text-text-muted max-w-sm mx-auto">
+                  This server is missing <code className="font-mono">PIXAZO_API_KEY</code>. Get a free key at{" "}
+                  <a href="https://www.pixazo.ai/api/free" target="_blank" rel="noreferrer" className="text-accent hover:underline">
+                    pixazo.ai/api/free
+                  </a>{" "}
+                  and add it to the environment. No credits were charged for this attempt.
+                </p>
+              </div>
+            </div>
+          )}
 
-        {status !== "loading" && !resultUrl && status !== "unavailable" && (
-          <p className="text-sm text-text-muted px-8 text-center">
-            Your generation will appear here.
-          </p>
-        )}
+          {status !== "loading" && !resultUrl && status === "error" && (
+            <div className="absolute inset-0 flex items-center justify-center px-8 text-center">
+              <p className="text-sm text-critical">{error}</p>
+            </div>
+          )}
+
+          {status !== "loading" && !resultUrl && status === "idle" && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <p className="text-sm text-text-muted px-4 text-center">Your generation will appear here.</p>
+            </div>
+          )}
+        </div>
+
+        <span className="absolute bottom-3 right-3 text-[10px] font-mono text-text-muted">
+          {aspectRatio.label}
+        </span>
       </div>
     </div>
   );
