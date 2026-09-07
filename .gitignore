@@ -21,3 +21,6 @@ npm-debug.log*
 # Prisma (local SQLite database file)
 prisma/dev.db
 prisma/dev.db-journal
+
+# User-generated media saved at runtime - not static assets to commit.
+public/generated/

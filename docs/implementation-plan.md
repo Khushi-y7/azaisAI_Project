@@ -82,11 +82,18 @@ regardless.
 Keep the *shape* (multiple models, visible cost/time per model, a picker grid) but be
 honest about what's actually running:
 
-- **Image:** 2-3 Pollinations models/styles, badged plainly (e.g. "Flux — via
-  Pollinations") rather than pretending to be GPT Image.
-- **Video:** Seedance / Veo-alpha / Wan-Fast via the Pollinations gateway, badged
-  "alpha" where the upstream calls it that. If a given model proves too unreliable
-  during build, cut it rather than ship a broken option — functionality over SKU count.
+Verified directly against the live API (not docs/search, which turned out to list
+models that don't actually exist on this gateway):
+
+- **Image:** exactly one real free-tier model, `sana`. Badged honestly as "Sana — via
+  Pollinations." No model *grid* to fake, so the creative-choice UI leans on style
+  presets (prompt modifiers) instead, which is what the original's style picker
+  amounted to anyway.
+- **Video:** exactly one real model on the gateway, `nova-reel` (Amazon Nova Reel) at
+  ~0.08 pollen/sec — and it requires a **funded pollen balance**, confirmed via a live
+  402 response on our free key. Not actually free despite being reachable without a
+  paid Pollinations plan. Built for real, with an honest "needs a funded balance" state
+  rather than faking output — the user's call whether to top up a small amount.
 
 ## Feature priority
 
