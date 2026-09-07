@@ -9,8 +9,10 @@ import {
   MOTION_PRESETS,
   findVideoAspectRatio,
 } from "@/lib/models";
+import { addPendingGeneration, getPendingGenerations } from "@/lib/pending-generations";
 
 const FRAME_MARGIN = 32;
+const POLL_INTERVAL_MS = 4_000;
 
 export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
   const router = useRouter();
@@ -18,9 +20,18 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
   const [duration, setDuration] = useState<number>(VIDEO_DURATIONS[0]);
   const [aspectRatioId, setAspectRatioId] = useState<string>("16:9");
   const [motionId, setMotionId] = useState<string | null>("arc-orbit");
-  const [status, setStatus] = useState<"idle" | "loading" | "error" | "not-configured">("idle");
+  // Lazy initializer, not an effect: if a video from a previous visit is
+  // still processing (see the resume effect below), start already showing
+  // the loading state instead of flashing a blank form for a frame.
+  const [status, setStatus] = useState<"idle" | "loading" | "error" | "not-configured">(() =>
+    typeof window !== "undefined" && getPendingGenerations().some((g) => g.type === "video")
+      ? "loading"
+      : "idle"
+  );
   const [error, setError] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const aspectRatio = findVideoAspectRatio(aspectRatioId);
   const ratio = aspectRatio.id === "16:9" ? 16 / 9 : 9 / 16;
@@ -48,6 +59,44 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
     return () => observer.disconnect();
   }, [ratio]);
 
+  // If a video was still processing the last time this page was open (the
+  // user navigated away and came back, or reloaded), pick the loading
+  // state back up instead of showing a blank form.
+  useEffect(() => {
+    const pending = getPendingGenerations().find((g) => g.type === "video");
+    if (pending) {
+      pollGeneration(pending.id);
+    }
+    return () => {
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function pollGeneration(id: string) {
+    if (pollRef.current) clearInterval(pollRef.current);
+    pollRef.current = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/generations/${id}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.status === "succeeded") {
+          if (pollRef.current) clearInterval(pollRef.current);
+          setResultUrl(data.resultUrl);
+          setStatus("idle");
+          router.refresh();
+        } else if (data.status === "failed") {
+          if (pollRef.current) clearInterval(pollRef.current);
+          setError(data.errorMessage ?? "Generation failed.");
+          setStatus("error");
+          router.refresh();
+        }
+      } catch {
+        // transient network hiccup, keep polling
+      }
+    }, POLL_INTERVAL_MS);
+  }
+
   async function handleGenerate() {
     if (!loggedIn) {
       router.push("/auth/signup?next=/generate/video");
@@ -60,6 +109,7 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
     }
     setStatus("loading");
     setError(null);
+    setResultUrl(null);
     try {
       const res = await fetch("/api/generate/video", {
         method: "POST",
@@ -73,9 +123,11 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
         setStatus(notConfigured ? "not-configured" : "error");
         return;
       }
-      setResultUrl(data.url);
-      setStatus("idle");
-      router.refresh();
+      // The job now keeps running on the server (see the route's use of
+      // `after`) no matter what happens to this tab. Track it so both this
+      // page's own polling and the global toast watcher can find it.
+      addPendingGeneration({ id: data.id, type: "video", startedAt: Date.now() });
+      pollGeneration(data.id);
     } catch {
       setError("Couldn't reach the server. Try again.");
       setStatus("error");
@@ -189,6 +241,11 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
         >
           {status === "loading" ? "Generating…" : loggedIn ? "Generate video" : "Sign up to generate"}
         </button>
+        {status === "loading" && (
+          <p className="text-xs text-text-muted text-center">
+            Feel free to browse elsewhere. It keeps generating in the background and we will let you know when it is ready.
+          </p>
+        )}
       </div>
 
       {/* Right panel: backdrop, always fills the viewport height */}
@@ -205,7 +262,7 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-text-muted px-6 text-center">
               <div className="w-8 h-8 border-2 border-border border-t-accent rounded-full animate-spin" />
               <p className="text-sm">
-                Generating with {VIDEO_MODEL.label} — usually under a minute, sometimes longer
+                Generating with {VIDEO_MODEL.label}. Usually under a minute, sometimes longer.
               </p>
             </div>
           )}

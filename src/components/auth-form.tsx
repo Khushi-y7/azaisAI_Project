@@ -101,7 +101,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
         <p className="text-sm text-text-muted mt-1 mb-6">
           {step === "email"
             ? "Enter your email to receive a sign-in code."
-            : `Enter the code — since this demo has no email service wired up, it's shown below instead of sent.`}
+            : `Enter the code. Since this demo has no email service wired up, it's shown below instead of sent.`}
         </p>
 
         {step === "email" ? (
@@ -134,7 +134,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
           <form onSubmit={verifyCode} className="space-y-4">
             {demoCode && (
               <div className="rounded-lg border border-accent/30 bg-accent-soft px-3.5 py-3 text-sm">
-                <p className="text-text-muted text-xs mb-1">Demo mode — your code:</p>
+                <p className="text-text-muted text-xs mb-1">Demo mode, your code:</p>
                 <p className="font-mono text-lg tracking-[0.3em] text-accent">{demoCode}</p>
               </div>
             )}

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { after } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/session";
 import { db } from "@/lib/db";
@@ -13,11 +14,20 @@ const bodySchema = z.object({
   aspectRatioId: z.string(),
 });
 
+// Video generation takes 1-2 minutes. Instead of holding this request open
+// the whole time (which dies the moment the tab closes or the request
+// times out), this route just starts the job, records it, and returns
+// right away. The actual provider call runs in `after()`, which keeps the
+// server working past the response - the client separately polls
+// GET /api/generations/[id] to find out when it's done, and a global
+// watcher (see GenerationToastWatcher) keeps checking even if the user
+// navigates elsewhere in the app.
 export async function POST(req: Request) {
   const session = await getSession();
   if (!session.userId) {
     return NextResponse.json({ error: "Sign in to generate." }, { status: 401 });
   }
+  const userId = session.userId;
 
   const parsed = bodySchema.safeParse(await req.json().catch(() => null));
   if (!parsed.success) {
@@ -29,7 +39,7 @@ export async function POST(req: Request) {
   const cost = duration * VIDEO_MODEL.costPerSecond;
 
   try {
-    await holdCredits(session.userId, cost);
+    await holdCredits(userId, cost);
   } catch (err) {
     if (err instanceof InsufficientCreditsError) {
       return NextResponse.json({ error: "Not enough credits for this generation." }, { status: 402 });
@@ -39,7 +49,7 @@ export async function POST(req: Request) {
 
   const generation = await db.generation.create({
     data: {
-      userId: session.userId,
+      userId,
       type: "video",
       model: VIDEO_MODEL.id,
       prompt,
@@ -50,21 +60,25 @@ export async function POST(req: Request) {
   });
 
   const finalPrompt = motion ? `${prompt}, ${motion.modifier}` : prompt;
-  const result = await generateVideo({ prompt: finalPrompt, duration, aspectRatio: aspectRatio.id });
 
-  if (result.ok && result.url) {
+  after(async () => {
+    const result = await generateVideo({ prompt: finalPrompt, duration, aspectRatio: aspectRatio.id });
+
+    if (result.ok && result.url) {
+      await db.generation.update({
+        where: { id: generation.id },
+        data: { status: "succeeded", resultUrl: result.url, completedAt: new Date() },
+      });
+      await recordCharge(userId, cost, generation.id);
+      return;
+    }
+
     await db.generation.update({
       where: { id: generation.id },
-      data: { status: "succeeded", resultUrl: result.url, completedAt: new Date() },
+      data: { status: "failed", errorMessage: result.error, completedAt: new Date() },
     });
-    await recordCharge(session.userId, cost, generation.id);
-    return NextResponse.json({ ok: true, id: generation.id, url: result.url });
-  }
-
-  await db.generation.update({
-    where: { id: generation.id },
-    data: { status: "failed", errorMessage: result.error, completedAt: new Date() },
+    await refundCredits(userId, cost, generation.id);
   });
-  await refundCredits(session.userId, cost, generation.id);
-  return NextResponse.json({ error: result.error ?? "Generation failed." }, { status: 502 });
+
+  return NextResponse.json({ ok: true, id: generation.id, status: "processing" }, { status: 202 });
 }

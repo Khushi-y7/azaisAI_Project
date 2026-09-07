@@ -4,7 +4,7 @@ export default function PrivacyPage() {
       <h1 className="text-3xl font-bold mb-2">Privacy Policy</h1>
       <p className="text-sm text-text-muted mb-10">
         Last updated 2026-09-07. This is a demo build made as a take-home
-        exercise, not a real company — treat this page as a placeholder for
+        exercise, not a real company. Treat this page as a placeholder for
         what a real policy would cover, not legal advice.
       </p>
       <div className="space-y-6 text-sm text-text-muted leading-relaxed">
@@ -14,15 +14,15 @@ export default function PrivacyPage() {
             Your email, a hashed one-time login code, your credit balance and
             transaction history, and the prompts/results of anything you
             generate. That&apos;s stored in a plain SQLite/Postgres database
-            for this project — nothing is sold or shared with third parties.
+            for this project, and nothing is sold or shared with third parties.
           </p>
         </section>
         <section>
           <h2 className="text-text font-semibold mb-2">Generation providers</h2>
           <p>
-            Prompts you submit are sent to Pollinations (image.pollinations.ai
-            / gen.pollinations.ai) to produce your result. Their own privacy
-            terms apply to how they handle that request.
+            Prompts you submit are sent to Pollinations (image generation) or
+            Pixazo (video generation) to produce your result. Their own
+            privacy terms apply to how they handle that request.
           </p>
         </section>
         <section>
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
           <h2 className="text-text font-semibold mb-2">Deleting your data</h2>
           <p>
             Email support@azaisai.com and mention this is about the rebuild
-            project — since there&apos;s no real support team, this is really
+            project. Since there&apos;s no real support team, this is really
             just &quot;ask the person who built it.&quot;
           </p>
         </section>

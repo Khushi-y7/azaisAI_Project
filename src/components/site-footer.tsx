@@ -12,7 +12,7 @@ export function SiteFooter() {
           </div>
           <p className="text-sm text-text-muted max-w-sm">
             Generate cinematic videos and stunning images from a single
-            prompt. Built on real, working generation providers — not a
+            prompt. Built on real, working generation providers, not a
             simulation.
           </p>
           <div className="flex gap-2 mt-4">
@@ -52,7 +52,7 @@ export function SiteFooter() {
       </div>
       <div className="border-t border-border">
         <div className="mx-auto max-w-6xl px-4 sm:px-6 py-4 flex flex-wrap gap-3 justify-between text-xs text-text-muted">
-          <span>© 2026 AzaisAi. Rebuild project — not affiliated with the original.</span>
+          <span>© 2026 AzaisAi. Rebuild project, not affiliated with the original.</span>
           <div className="flex gap-4">
             <Link href="/privacy" className="hover:text-text">Privacy Policy</Link>
             <Link href="/terms" className="hover:text-text">Terms of Service</Link>

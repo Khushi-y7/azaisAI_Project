@@ -9,7 +9,7 @@ export default function ContactPage() {
       </h1>
       <p className="text-sm text-text-muted mt-3 mb-8">
         Have a question, issue, or idea? Send a message below, or check the{" "}
-        <a href="/faq" className="text-accent hover:underline">FAQ page</a> — it answers
+        <a href="/faq" className="text-accent hover:underline">FAQ page</a>, it answers
         most common questions instantly.
       </p>
       <ContactForm />

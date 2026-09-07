@@ -5,31 +5,31 @@ import { useState } from "react";
 const FAQS = [
   {
     q: "What is AzaisAi?",
-    a: "AzaisAi is a rebuild of the original azaisai.com product — an AI video and image generation platform. This version runs on real, working, free-tier providers (Sana for images via Pollinations, LTX for video via Pixazo) instead of the original's licensed Sora/Veo/Runway access.",
+    a: "AzaisAi is a rebuild of the original azaisai.com product, an AI video and image generation platform. This version runs on real, working, free-tier providers (Sana for images via Pollinations, LTX for video via Pixazo) instead of the original's licensed Sora/Veo/Runway access.",
   },
   {
     q: "What AI models do you use?",
-    a: "One image model (Sana, via Pollinations) and one video model (LTX by Lightricks, via Pixazo). That's genuinely what's available for free — we'd rather show two real models honestly than a grid of names that don't actually run.",
+    a: "One image model (Sana, via Pollinations) and one video model (LTX by Lightricks, via Pixazo). That's genuinely what's available for free, and we'd rather show two real models honestly than a grid of names that don't actually run.",
   },
   {
     q: "Is video generation actually free?",
-    a: "Yes — unlike our first attempt at this (Pollinations' video gateway, which turned out to need a funded paid balance despite looking free), LTX via Pixazo is genuinely free on its preview tier, no card required. It can still be slow (generation typically takes under two minutes) or occasionally unavailable if the provider changes its terms.",
+    a: "Yes. Unlike our first attempt at this (Pollinations' video gateway, which turned out to need a funded paid balance despite looking free), LTX via Pixazo is genuinely free on its preview tier, no card required. It can still be slow (generation typically takes under two minutes) or occasionally unavailable if the provider changes its terms.",
   },
   {
     q: "How do credits work?",
-    a: "Images cost 1 credit flat. Video costs 1 credit per second of requested duration (6-10s). New accounts get 8 free credits on signup — enough for 8 images, or most of one short video.",
+    a: "Images cost 1 credit flat. Video costs 1 credit per second of requested duration (6-10s). New accounts get 8 free credits on signup, enough for 8 images, or most of one short video.",
   },
   {
     q: "Why did my generation fail?",
-    a: "Usually a provider-side timeout, rate limit, or content filter. Credits are only charged on success — a failed generation refunds itself automatically, you can check the exact reason on the History page.",
+    a: "Usually a provider-side timeout, rate limit, or content filter. Credits are only charged on success, and a failed generation refunds itself automatically. You can check the exact reason on the History page.",
   },
   {
     q: "Do credits expire, and can I subscribe?",
-    a: "This build doesn't process real payments (no Stripe, by design — see the implementation plan in the repo). The Pricing page shows what a real subscription would look like, but the buttons are clearly marked as a demo rather than pretending to charge you.",
+    a: "This build doesn't process real payments (no Stripe, by design, see the implementation plan in the repo). The Pricing page shows what a real subscription would look like, but the buttons are clearly marked as a demo rather than pretending to charge you.",
   },
   {
     q: "Is there a free trial?",
-    a: "Yes — every new account gets 8 credits immediately after signing up with just an email and a one-time code. No phone number, no card, unlike some confusing copy on the original product's own FAQ (which said phone verification, while its actual UI only ever asked for email).",
+    a: "Yes, every new account gets 8 credits immediately after signing up with just an email and a one-time code. No phone number, no card, unlike some confusing copy on the original product's own FAQ (which said phone verification, while its actual UI only ever asked for email).",
   },
   {
     q: "How do I download what I generate?",

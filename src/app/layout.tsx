@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { GenerationToastWatcher } from "@/components/generation-toast-watcher";
 
 const plexSans = IBM_Plex_Sans({
   variable: "--font-plex-sans",
@@ -17,7 +18,7 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AzaisAi — AI Video & Image Generator",
+  title: "AzaisAi: AI Video & Image Generator",
   description:
     "Generate cinematic videos and stunning images from a single prompt.",
 };
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <SiteHeader />
         <main className="flex-1 flex flex-col">{children}</main>
         <SiteFooter />
+        <GenerationToastWatcher />
       </body>
     </html>
   );

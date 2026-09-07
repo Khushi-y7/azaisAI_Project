@@ -190,7 +190,7 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-text-muted">
               <div className="w-8 h-8 border-2 border-border border-t-accent rounded-full animate-spin" />
               <p className="text-sm px-4 text-center">
-                Generating with {IMAGE_MODEL.label} — usually ~{IMAGE_MODEL.etaSeconds}s
+                Generating with {IMAGE_MODEL.label}, usually about {IMAGE_MODEL.etaSeconds}s
               </p>
             </div>
           )}

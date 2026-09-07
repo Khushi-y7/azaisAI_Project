@@ -38,7 +38,7 @@ export function ContactForm() {
         <p className="font-medium">Message saved.</p>
         <p className="text-text-muted mt-1">
           This is a demo build with no email service wired up, so nothing gets
-          sent or auto-replied to — but your message really was written to
+          sent or auto-replied to, but your message really was written to
           the database, not discarded. For a real reply, email{" "}
           <a href="mailto:support@azaisai.com" className="text-accent hover:underline">
             support@azaisai.com

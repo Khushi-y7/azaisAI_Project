@@ -18,7 +18,7 @@ export default function UpgradePage() {
       </h1>
       <p className="text-text-muted mt-3">Get unlimited access to all features. Cancel anytime.</p>
       <div className="mt-3 inline-block text-xs font-mono text-warn bg-warn-soft border border-warn/30 rounded-full px-3 py-1">
-        Demo pricing — no payment processor connected, nothing is actually charged
+        Demo pricing, no payment processor connected, nothing is actually charged
       </div>
 
       <div className="mt-12 text-left">
@@ -49,7 +49,7 @@ export default function UpgradePage() {
               </ul>
               <button
                 disabled
-                title="Demo — no checkout connected"
+                title="Demo, no checkout connected"
                 className={`mt-6 w-full rounded-lg py-2.5 text-sm font-medium cursor-not-allowed ${
                   plan.popular ? "bg-accent/50 text-white" : "bg-surface-2 text-text-muted"
                 }`}
@@ -77,7 +77,7 @@ export default function UpgradePage() {
               <p className="text-sm text-text-muted mt-1">{pack.credits} credits</p>
               <button
                 disabled
-                title="Demo — no checkout connected"
+                title="Demo, no checkout connected"
                 className="mt-6 w-full rounded-lg bg-surface-2 text-text-muted py-2.5 text-sm font-medium cursor-not-allowed"
               >
                 Sign in to purchase

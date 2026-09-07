@@ -7,12 +7,12 @@ const steps = [
   {
     n: "01",
     title: "Pick your model",
-    body: "Choose the model that fits your project — each has its own strengths. Pick one and go.",
+    body: "Choose the model that fits your project. Each has its own strengths, so pick one and go.",
   },
   {
     n: "02",
     title: "Describe it",
-    body: "Write what you want to see. A sentence is enough — the model fills in the rest.",
+    body: "Write what you want to see. A sentence is enough, and the model fills in the rest.",
   },
   {
     n: "03",
@@ -94,7 +94,7 @@ export default async function Home() {
           See what&apos;s possible
         </h2>
         <p className="text-center text-sm text-text-muted mt-2">
-          Every image below started as a single prompt — generated live for this rebuild, not stock photos.
+          Every image below started as a single prompt, generated live for this rebuild, not stock photos.
         </p>
         <div className="mt-10 grid grid-cols-2 sm:grid-cols-4 gap-3">
           {gallery.map((item) => (
@@ -124,7 +124,7 @@ export default async function Home() {
           </h2>
           <p className="mt-3 text-sm text-text-muted max-w-md mx-auto">
             One prompt. Cinematic videos and stunning visuals that stop the
-            scroll — created in seconds, not hours.
+            scroll, created in seconds, not hours.
           </p>
           <div className="mt-6 flex justify-center gap-3 flex-wrap">
             <Link
