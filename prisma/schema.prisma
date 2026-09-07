@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -53,6 +53,9 @@ model Generation {
   costCredits   Int
   resultUrl     String?
   errorMessage  String?
+  // For an async external job (Pixazo video): its polling URL, so any
+  // request can check on it later without a long-running server task.
+  externalRef   String?
   createdAt     DateTime  @default(now())
   completedAt   DateTime?
 

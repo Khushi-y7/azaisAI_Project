@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
-import { after } from "next/server";
 import { z } from "zod";
 import { getSession } from "@/lib/session";
 import { db } from "@/lib/db";
-import { holdCredits, refundCredits, recordCharge, InsufficientCreditsError } from "@/lib/credits";
-import { generateVideo } from "@/lib/pixazo";
+import { holdCredits, InsufficientCreditsError } from "@/lib/credits";
+import { submitVideoJob } from "@/lib/pixazo";
 import { VIDEO_MODEL, VIDEO_DURATIONS, findMotionPreset, findVideoAspectRatio } from "@/lib/models";
 
 const bodySchema = z.object({
@@ -14,14 +13,15 @@ const bodySchema = z.object({
   aspectRatioId: z.string(),
 });
 
-// Video generation takes 1-2 minutes. Instead of holding this request open
-// the whole time (which dies the moment the tab closes or the request
-// times out), this route just starts the job, records it, and returns
-// right away. The actual provider call runs in `after()`, which keeps the
-// server working past the response - the client separately polls
-// GET /api/generations/[id] to find out when it's done, and a global
-// watcher (see GenerationToastWatcher) keeps checking even if the user
-// navigates elsewhere in the app.
+// Video generation takes 1-2 minutes - far longer than a serverless
+// function is allowed to run. So this route only submits the job to
+// Pixazo (a fast, single request) and stores its polling URL. Nothing
+// here waits for completion; GET /api/generations/[id] advances the job
+// by one status check each time it's polled, which the client already
+// does every few seconds. That keeps every request fast and Vercel-safe,
+// and means the job can be checked on again at any point in the future,
+// even if no one polled for a while - Pixazo does the actual work
+// independently of whether we're watching it.
 export async function POST(req: Request) {
   const session = await getSession();
   if (!session.userId) {
@@ -47,6 +47,30 @@ export async function POST(req: Request) {
     throw err;
   }
 
+  const finalPrompt = motion ? `${prompt}, ${motion.modifier}` : prompt;
+  const submitted = await submitVideoJob({ prompt: finalPrompt, duration, aspectRatio: aspectRatio.id });
+
+  if (!submitted.ok || !submitted.pollingUrl) {
+    // Nothing was actually queued, so refund immediately rather than
+    // create a generation row that could never succeed.
+    const { refundCredits } = await import("@/lib/credits");
+    const failedRecord = await db.generation.create({
+      data: {
+        userId,
+        type: "video",
+        model: VIDEO_MODEL.id,
+        prompt,
+        paramsJson: JSON.stringify({ duration, motionId, aspectRatioId }),
+        status: "failed",
+        costCredits: cost,
+        errorMessage: submitted.error,
+        completedAt: new Date(),
+      },
+    });
+    await refundCredits(userId, cost, failedRecord.id);
+    return NextResponse.json({ error: submitted.error ?? "Generation failed." }, { status: 502 });
+  }
+
   const generation = await db.generation.create({
     data: {
       userId,
@@ -56,28 +80,8 @@ export async function POST(req: Request) {
       paramsJson: JSON.stringify({ duration, motionId, aspectRatioId }),
       status: "processing",
       costCredits: cost,
+      externalRef: submitted.pollingUrl,
     },
-  });
-
-  const finalPrompt = motion ? `${prompt}, ${motion.modifier}` : prompt;
-
-  after(async () => {
-    const result = await generateVideo({ prompt: finalPrompt, duration, aspectRatio: aspectRatio.id });
-
-    if (result.ok && result.url) {
-      await db.generation.update({
-        where: { id: generation.id },
-        data: { status: "succeeded", resultUrl: result.url, completedAt: new Date() },
-      });
-      await recordCharge(userId, cost, generation.id);
-      return;
-    }
-
-    await db.generation.update({
-      where: { id: generation.id },
-      data: { status: "failed", errorMessage: result.error, completedAt: new Date() },
-    });
-    await refundCredits(userId, cost, generation.id);
   });
 
   return NextResponse.json({ ok: true, id: generation.id, status: "processing" }, { status: 202 });

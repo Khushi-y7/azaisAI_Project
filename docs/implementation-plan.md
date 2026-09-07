@@ -45,7 +45,7 @@ Runway access, and that swap is disclosed in the UI copy, not hidden.
 |---|---|---|
 | Framework | Next.js (App Router) + TypeScript | One codebase for pages + API routes, fast to scaffold, deploys cleanly to Vercel |
 | Styling | Tailwind CSS | Matches the dark/glassmorphism look quickly, no design-system build cost |
-| Database | **SQLite via Prisma** (Postgres at deploy time) | Zero signup, zero keys, runs immediately for local dev. Swaps to Vercel's one-click Storage → Postgres (connection string auto-filled, same account used to deploy) when we go live — user asked to avoid Supabase account/key setup |
+| Database | **Postgres via Prisma**, from Vercel's own Storage tab | Started on SQLite for zero-signup local dev, but that doesn't survive Vercel's serverless filesystem, a code that gets written in one request may not exist for the next one to read. Switched to Postgres once deployment was actually on the table; Vercel's own one-click Storage → Postgres keeps it to "same account you're already using," not a new external service like Supabase |
 | Auth | **Custom email + one-time code**, no third-party auth service | Matches the observed passwordless flow's *shape*; no email-sending key available, so the code is shown on-screen rather than emailed — disclosed as a demo shortcut, not hidden. Session = signed cookie, secret generated locally into `.env.local` |
 | Storage | Keep the URL Pollinations returns | No blob/object storage service to configure; documented tradeoff (see Generation flow) |
 | Payments | **Dropped** — user asked to skip Stripe | `/upgrade` is a real pricing page with working buttons that say "demo — no checkout" rather than faking a charge |
