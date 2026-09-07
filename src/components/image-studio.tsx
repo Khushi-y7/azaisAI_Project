@@ -24,7 +24,6 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [showExample, setShowExample] = useState(true);
 
-  const style = IMAGE_STYLES.find((s) => s.id === styleId)!;
   const aspectRatio = IMAGE_ASPECT_RATIOS.find((a) => a.id === aspectRatioId)!;
 
   async function handleGenerate() {
