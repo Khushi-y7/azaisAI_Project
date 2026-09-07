@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 
 const CODE_TTL_MINUTES = 10;
-const SIGNUP_GRANT_CREDITS = 8;
+const SIGNUP_GRANT_CREDITS = 50;
 
 export function generateCode(): string {
   // 6-digit, zero-padded.
