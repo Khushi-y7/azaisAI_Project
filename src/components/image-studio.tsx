@@ -24,8 +24,6 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [showExample, setShowExample] = useState(true);
 
-  const aspectRatio = IMAGE_ASPECT_RATIOS.find((a) => a.id === aspectRatioId)!;
-
   async function handleGenerate() {
     if (!loggedIn) {
       router.push("/auth/signup?next=/generate/image");
@@ -61,9 +59,9 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid lg:grid-cols-[380px_1fr] gap-6">
+    <div className="w-full mx-auto max-w-6xl px-4 sm:px-6 py-6 grid lg:grid-cols-[380px_1fr] gap-6 lg:h-[calc(100vh_-_7rem)] lg:min-h-[560px]">
       {/* Left panel */}
-      <div className="space-y-6">
+      <div className="space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
         <div>
           <h1 className="text-lg font-semibold">Text to image</h1>
           <p className="text-xs text-text-muted mt-1">
@@ -143,7 +141,7 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
       </div>
 
       {/* Right panel: preview */}
-      <div className="glass-card min-h-[420px] flex items-center justify-center relative overflow-hidden">
+      <div className="glass-card min-h-[420px] lg:h-full lg:min-h-0 flex items-center justify-center relative overflow-hidden">
         {status === "loading" && (
           <div className="flex flex-col items-center gap-3 text-text-muted">
             <div className="w-8 h-8 border-2 border-border border-t-accent rounded-full animate-spin" />
@@ -157,14 +155,14 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
           <Image
             src={resultUrl}
             alt={prompt}
-            width={aspectRatio.width}
-            height={aspectRatio.height}
-            className="w-full h-auto max-h-[70vh] object-contain"
+            fill
+            sizes="(min-width: 1024px) 60vw, 100vw"
+            className="object-contain"
           />
         )}
 
         {status !== "loading" && !resultUrl && showExample && (
-          <div className="relative w-full">
+          <>
             <button
               onClick={() => setShowExample(false)}
               className="absolute top-3 left-3 z-10 text-xs bg-black/50 backdrop-blur px-2.5 py-1 rounded-full text-white/80 hover:text-white"
@@ -174,15 +172,15 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
             <Image
               src={EXAMPLE.url}
               alt={EXAMPLE.caption}
-              width={800}
-              height={800}
-              className="w-full h-auto max-h-[70vh] object-contain opacity-90"
+              fill
+              sizes="(min-width: 1024px) 60vw, 100vw"
+              className="object-cover opacity-90"
             />
             <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
               <p className="text-[10px] font-mono uppercase tracking-wide text-white/60 mb-1">Example</p>
               <p className="text-xs text-white/90 leading-snug">{EXAMPLE.caption}</p>
             </div>
-          </div>
+          </>
         )}
 
         {status !== "loading" && !resultUrl && !showExample && (

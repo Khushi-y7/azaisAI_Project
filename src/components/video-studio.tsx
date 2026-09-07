@@ -51,9 +51,9 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 sm:px-6 py-10 grid lg:grid-cols-[380px_1fr] gap-6">
+    <div className="w-full mx-auto max-w-6xl px-4 sm:px-6 py-6 grid lg:grid-cols-[380px_1fr] gap-6 lg:h-[calc(100vh_-_7rem)] lg:min-h-[560px]">
       {/* Left panel */}
-      <div className="space-y-6">
+      <div className="space-y-6 lg:h-full lg:overflow-y-auto lg:pr-2">
         <div>
           <h1 className="text-lg font-semibold">Video Studio</h1>
           <p className="text-xs text-text-muted mt-1">
@@ -96,7 +96,7 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
 
         <div>
           <p className="text-xs font-mono uppercase tracking-wide text-text-muted mb-2">Motion</p>
-          <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
+          <div className="space-y-3">
             {MOTION_PRESETS.map((group) => (
               <div key={group.group}>
                 <p className="text-[10px] uppercase tracking-wide text-text-muted mb-1.5">{group.group}</p>
@@ -141,7 +141,7 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
       </div>
 
       {/* Right panel */}
-      <div className="glass-card min-h-[420px] flex items-center justify-center relative overflow-hidden">
+      <div className="glass-card min-h-[420px] lg:h-full lg:min-h-0 flex items-center justify-center relative overflow-hidden">
         {status === "loading" && (
           <div className="flex flex-col items-center gap-3 text-text-muted px-6 text-center">
             <div className="w-8 h-8 border-2 border-border border-t-accent rounded-full animate-spin" />
@@ -150,7 +150,7 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
         )}
 
         {status !== "loading" && resultUrl && (
-          <video src={resultUrl} controls className="w-full h-auto max-h-[70vh]" />
+          <video src={resultUrl} controls className="w-full h-full object-contain" />
         )}
 
         {status !== "loading" && !resultUrl && status === "unavailable" && (

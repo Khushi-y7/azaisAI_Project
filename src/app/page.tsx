@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { getSession } from "@/lib/session";
+import { MarqueeGallery } from "@/components/marquee-gallery";
 
 const steps = [
   {
@@ -79,6 +80,10 @@ export default async function Home() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="py-16 border-t border-border overflow-hidden">
+        <MarqueeGallery />
       </section>
 
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-16 border-t border-border">

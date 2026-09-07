@@ -62,3 +62,43 @@ body {
 .glass-card:hover {
   border-color: color-mix(in srgb, var(--border) 50%, var(--accent));
 }
+
+/* Two-row gallery marquee: each row's track holds the image list twice back
+   to back, then scrolls exactly -50% so the loop seam is invisible. */
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+
+.marquee-row {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+
+.marquee-track {
+  display: flex;
+  width: max-content;
+}
+
+.marquee-track.left {
+  animation: marquee-left 48s linear infinite;
+}
+
+.marquee-track.right {
+  animation: marquee-right 48s linear infinite;
+}
+
+.marquee-row:hover .marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track.left,
+  .marquee-track.right {
+    animation: none;
+  }
+}
