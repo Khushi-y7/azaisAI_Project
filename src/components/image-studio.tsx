@@ -228,8 +228,14 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
           )}
 
           {status !== "loading" && !resultUrl && !showExample && (
-            <div className="absolute inset-0 flex items-center justify-center">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
               <p className="text-sm text-text-muted px-4 text-center">Your generation will appear here.</p>
+              <button
+                onClick={() => setShowExample(true)}
+                className="text-xs text-accent hover:underline"
+              >
+                Show example
+              </button>
             </div>
           )}
         </div>
