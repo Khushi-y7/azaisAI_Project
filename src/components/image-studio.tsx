@@ -1,18 +1,21 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   IMAGE_MODEL,
   IMAGE_STYLES,
   IMAGE_ASPECT_RATIOS,
+  findAspectRatio,
 } from "@/lib/models";
 
 const EXAMPLE = {
   url: "/examples/a-portrait.jpg",
   caption: "Cinematic portrait of a woman with golden light, film grain, shallow depth of field",
 };
+
+const FRAME_MARGIN = 32; // breathing room between the frame and the panel edge, px
 
 export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
   const router = useRouter();
@@ -23,6 +26,37 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
   const [showExample, setShowExample] = useState(true);
+
+  const aspectRatio = findAspectRatio(aspectRatioId);
+  const ratio = aspectRatio.width / aspectRatio.height;
+
+  // The frame's box (in px) is recomputed to be the largest rectangle of
+  // the selected aspect ratio that fits inside the panel - the same math
+  // as object-fit: contain, but for a real element, so buttons/captions
+  // inside it stay anchored to the frame's actual edges, not the panel's.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [frameSize, setFrameSize] = useState({ width: 0, height: 0 });
+
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!panel) return;
+
+    function recompute() {
+      const availableW = Math.max(panel!.clientWidth - FRAME_MARGIN, 0);
+      const availableH = Math.max(panel!.clientHeight - FRAME_MARGIN, 0);
+      if (availableW <= 0 || availableH <= 0) return;
+      if (availableW / availableH > ratio) {
+        setFrameSize({ width: availableH * ratio, height: availableH });
+      } else {
+        setFrameSize({ width: availableW, height: availableW / ratio });
+      }
+    }
+
+    recompute();
+    const observer = new ResizeObserver(recompute);
+    observer.observe(panel);
+    return () => observer.disconnect();
+  }, [ratio]);
 
   async function handleGenerate() {
     if (!loggedIn) {
@@ -140,52 +174,69 @@ export function ImageStudio({ loggedIn }: { loggedIn: boolean }) {
         </button>
       </div>
 
-      {/* Right panel: preview */}
-      <div className="glass-card min-h-[420px] lg:h-full lg:min-h-0 flex items-center justify-center relative overflow-hidden">
-        {status === "loading" && (
-          <div className="flex flex-col items-center gap-3 text-text-muted">
-            <div className="w-8 h-8 border-2 border-border border-t-accent rounded-full animate-spin" />
-            <p className="text-sm">
-              Generating with {IMAGE_MODEL.label} — usually ~{IMAGE_MODEL.etaSeconds}s
-            </p>
-          </div>
-        )}
+      {/* Right panel: backdrop, always fills the viewport height */}
+      <div ref={panelRef} className="glass-card lg:h-full lg:min-h-0 min-h-[420px] flex items-center justify-center relative overflow-hidden">
+        {/* Frame: reshapes to the selected aspect ratio, so you can see
+            exactly how a generation will be cropped before spending credits. */}
+        <div
+          className="relative rounded-lg overflow-hidden bg-surface-2 border border-border transition-[width,height] duration-200"
+          style={
+            frameSize.width > 0
+              ? { width: frameSize.width, height: frameSize.height }
+              : { width: "90%", height: "90%" }
+          }
+        >
+          {status === "loading" && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-text-muted">
+              <div className="w-8 h-8 border-2 border-border border-t-accent rounded-full animate-spin" />
+              <p className="text-sm px-4 text-center">
+                Generating with {IMAGE_MODEL.label} — usually ~{IMAGE_MODEL.etaSeconds}s
+              </p>
+            </div>
+          )}
 
-        {status !== "loading" && resultUrl && (
-          <Image
-            src={resultUrl}
-            alt={prompt}
-            fill
-            sizes="(min-width: 1024px) 60vw, 100vw"
-            className="object-contain"
-          />
-        )}
-
-        {status !== "loading" && !resultUrl && showExample && (
-          <>
-            <button
-              onClick={() => setShowExample(false)}
-              className="absolute top-3 left-3 z-10 text-xs bg-black/50 backdrop-blur px-2.5 py-1 rounded-full text-white/80 hover:text-white"
-            >
-              Hide example
-            </button>
+          {status !== "loading" && resultUrl && (
             <Image
-              src={EXAMPLE.url}
-              alt={EXAMPLE.caption}
+              src={resultUrl}
+              alt={prompt}
               fill
               sizes="(min-width: 1024px) 60vw, 100vw"
-              className="object-cover opacity-90"
+              className="object-cover"
             />
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-              <p className="text-[10px] font-mono uppercase tracking-wide text-white/60 mb-1">Example</p>
-              <p className="text-xs text-white/90 leading-snug">{EXAMPLE.caption}</p>
-            </div>
-          </>
-        )}
+          )}
 
-        {status !== "loading" && !resultUrl && !showExample && (
-          <p className="text-sm text-text-muted">Your generation will appear here.</p>
-        )}
+          {status !== "loading" && !resultUrl && showExample && (
+            <>
+              <button
+                onClick={() => setShowExample(false)}
+                className="absolute top-3 left-3 z-10 text-xs bg-black/50 backdrop-blur px-2.5 py-1 rounded-full text-white/80 hover:text-white"
+              >
+                Hide example
+              </button>
+              <Image
+                src={EXAMPLE.url}
+                alt={EXAMPLE.caption}
+                fill
+                sizes="(min-width: 1024px) 60vw, 100vw"
+                className="object-cover opacity-90"
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                <p className="text-[10px] font-mono uppercase tracking-wide text-white/60 mb-1">Example</p>
+                <p className="text-xs text-white/90 leading-snug">{EXAMPLE.caption}</p>
+              </div>
+            </>
+          )}
+
+          {status !== "loading" && !resultUrl && !showExample && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <p className="text-sm text-text-muted px-4 text-center">Your generation will appear here.</p>
+            </div>
+          )}
+        </div>
+
+        <span className="absolute bottom-3 right-3 text-[10px] font-mono text-text-muted">
+          {aspectRatio.label}
+        </span>
       </div>
     </div>
   );
