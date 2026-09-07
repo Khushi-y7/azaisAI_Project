@@ -115,7 +115,7 @@ export default async function Home() {
       <section className="mx-auto max-w-6xl px-4 sm:px-6 py-20 border-t border-border">
         <div className="glass-card px-6 py-12 sm:px-16 text-center">
           <p className="text-xs font-mono text-text-muted mb-3">
-            8 free credits · no card required
+            50 free credits · no card required
           </p>
           <h2 className="text-2xl sm:text-4xl font-semibold text-balance">
             Start Creating <span className="text-accent">Today.</span>
