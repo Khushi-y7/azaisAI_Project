@@ -14,6 +14,12 @@ import { addPendingGeneration, getPendingGenerations } from "@/lib/pending-gener
 const FRAME_MARGIN = 32;
 const POLL_INTERVAL_MS = 4_000;
 
+const EXAMPLE = {
+  url: "/examples/landing-hero.mp4",
+  poster: "/examples/landing-hero-poster.jpg",
+  caption: "A real clip, not one of ours. Dropped in here to show what the frame looks like with something playing in it.",
+};
+
 export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
   const router = useRouter();
   const [prompt, setPrompt] = useState("");
@@ -30,6 +36,7 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
   );
   const [error, setError] = useState<string | null>(null);
   const [resultUrl, setResultUrl] = useState<string | null>(null);
+  const [showExample, setShowExample] = useState(true);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -110,6 +117,7 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
     setStatus("loading");
     setError(null);
     setResultUrl(null);
+    setShowExample(false);
     try {
       const res = await fetch("/api/generate/video", {
         method: "POST",
@@ -292,9 +300,39 @@ export function VideoStudio({ loggedIn }: { loggedIn: boolean }) {
             </div>
           )}
 
-          {status !== "loading" && !resultUrl && status === "idle" && (
-            <div className="absolute inset-0 flex items-center justify-center">
+          {status !== "loading" && !resultUrl && status === "idle" && showExample && (
+            <>
+              <button
+                onClick={() => setShowExample(false)}
+                className="absolute top-3 left-3 z-10 text-xs bg-black/50 backdrop-blur px-2.5 py-1 rounded-full text-white/80 hover:text-white"
+              >
+                Hide example
+              </button>
+              <video
+                src={EXAMPLE.url}
+                poster={EXAMPLE.poster}
+                className="absolute inset-0 w-full h-full object-cover opacity-90"
+                autoPlay
+                muted
+                loop
+                playsInline
+              />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                <p className="text-[10px] font-mono uppercase tracking-wide text-white/60 mb-1">Example</p>
+                <p className="text-xs text-white/90 leading-snug">{EXAMPLE.caption}</p>
+              </div>
+            </>
+          )}
+
+          {status !== "loading" && !resultUrl && status === "idle" && !showExample && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
               <p className="text-sm text-text-muted px-4 text-center">Your generation will appear here.</p>
+              <button
+                onClick={() => setShowExample(true)}
+                className="text-xs text-accent hover:underline"
+              >
+                Show example
+              </button>
             </div>
           )}
         </div>

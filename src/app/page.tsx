@@ -52,17 +52,15 @@ export default async function Home() {
         </div>
 
         <div className="mt-14 relative rounded-2xl overflow-hidden border border-border max-w-3xl mx-auto">
-          <Image
-            src="/examples/a-city.jpg"
-            alt="Example AzaisAi output: a neon-lit rainy city street"
-            width={800}
-            height={800}
+          <video
+            src="/examples/landing-hero.mp4"
+            poster="/examples/landing-hero-poster.jpg"
             className="w-full h-auto"
-            priority
+            autoPlay
+            muted
+            loop
+            playsInline
           />
-          <span className="absolute bottom-3 right-3 text-xs font-mono bg-black/50 backdrop-blur px-2 py-1 rounded text-white/80">
-            Sana
-          </span>
         </div>
       </section>
 
