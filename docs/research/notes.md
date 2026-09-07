@@ -161,18 +161,63 @@ Name / Email / Subject (dropdown) / Message (2000 char limit) form, Cloudflare
 Turnstile, "Send Message" button, plus a direct fallback: `support@azaisai.com`.
 24-48h response time stated.
 
-## What's still unverified (needs the authenticated walkthrough)
+## Authenticated walkthrough (screenshots from the user's own account, logged in)
 
-Not observable while logged out — captured from a human teammate's account walkthrough
-instead of the agent, since completing the OTP sign-in requires a real inbox and passing
-a live bot check:
+The agent still can't complete the OTP flow itself (no inbox), so these came from the
+user's real account. Five screenshots, not yet saved to `screenshots/` as files (only
+seen inline in chat) — worth re-capturing as PNGs later if we want them alongside the
+logged-out set.
 
-- Post-login landing/dashboard (if any distinct from `/generate/video`)
-- `/history` — actual layout of past generations, thumbnails, re-download, delete
+**Header changes once logged in:** the nav gains a credit balance chip (`⚡ 0 cr`) and a
+circular avatar with initials ("YD") between Pricing and the language selector. The
+account in the screenshots shows **0 credits** despite being signed up — so either the
+free grant needs a separate claim step, or this account hasn't triggered it yet. This
+actually reconciles the email-vs-phone FAQ "contradiction" flagged earlier: **email+OTP
+is for account creation/login; a phone-verification step may be a separate, optional
+action specifically to claim the 8 bonus credits**, not the same gate. Treat as a
+hypothesis, not confirmed — but it's more plausible than "the FAQ is just wrong."
+
+**Video studio has a whole feature not visible logged out — Motion presets.** Below the
+model grid there's a second picker, collapsible, with its own categories:
+- **Camera:** Slow zoom in, Pull back reveal, Arc orbit ("Smooth 90° arc around the
+  subject"), Pan across, Dolly push-in — each with a one-line description, radio-select,
+  a clear-selection (×) affordance.
+- **Atmosphere:** Golden light shift ("Warm light drifts across the scene over time"),
+  and presumably more below the fold.
+
+This is a meaningful UX layer we hadn't seen: it's not just "pick model → type prompt,"
+it's model → prompt → *cinematographic intent*, which is a nice, cheap-to-build,
+high-perceived-value feature (a fixed list of prompt-modifier presets, each just
+appends/steers the underlying prompt sent to the model).
+
+**Text vs. Image mode changes which models are offered.** In Image mode (image-to-video)
+the model grid drops both Sora options entirely, leaving only Veo 2/3/3 Fast and the
+three Runway Gen models — Sora apparently only supports text-to-video in this product.
+Image mode adds a **"Start frame"** upload slot (shown with a photo of a person at a
+laptop) — a real image-to-video parameter, not just a toggle.
+
+**Right-hand panel is a live example viewer, not just an empty canvas.** It shows a
+muted, autoplaying example video/image with a caption overlay (`EXAMPLE` + the prompt
+that produced it), a mute toggle, and a "Hide example" pill top-left. The example shown
+changes per model/style selected (waterfall for Veo 3 Fast, a portrait scene for the
+default). This is doing real work: it sets expectations for what a given model/style
+actually produces before you spend credits. Worth building — even a handful of static
+example clips/images per model gets most of the value.
+
+**FAQ is an accordion**, not the flat list the text-only fetch implied — one question
+open at a time (chevron up/down), first question expanded by default.
+
+**History page** (`/history`, confirmed via the browser chrome in the screenshot):
+eyebrow "WORKSPACE", H1 "History", subtitle "Review every generation, track status, and
+revisit past prompts." Filter tabs: All / Video / Image / Processing, a search icon
+top-right. Empty state: centered sparkle icon, "No generations yet" / "Start creating to
+see history here.", a "Create your first video" button. Clean, standard empty-state
+pattern — easy to replicate exactly.
+
+## Still open
+
 - Account/profile settings, plan management, invoice history
-- The `/upgrade` checkout flow once "Subscribe" / "Sign in to purchase" is actually
-  clickable (Stripe? custom?)
-- A real generation end-to-end: does the right-hand canvas fill with a progress state →
-  player? What does a failure state look like?
-- Whether the 8 free credits are real per the homepage ("no credit card") or gated
-  behind the phone-style verification the FAQ describes
+- The `/upgrade` checkout flow once "Subscribe" is actually clickable (Stripe? custom?)
+- A real generation end-to-end — does the right panel swap from "example" to an actual
+  progress state, then the real result? What does failure look like?
+- Whether/how the 8 free credits actually get claimed (see hypothesis above)

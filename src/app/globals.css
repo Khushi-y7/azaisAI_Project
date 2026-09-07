@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #05070c;
+  --surface: #0d111a;
+  --surface-2: #151b29;
+  --border: #232b3d;
+  --text: #e7ecf5;
+  --text-muted: #8b93a7;
+  --accent: #5b8def;
+  --accent-strong: #3e6fe0;
+  --accent-soft: rgba(91, 141, 239, 0.12);
+  --warn: #e3a431;
+  --warn-soft: rgba(227, 164, 49, 0.12);
+  --critical: #ff6b57;
+  --critical-soft: rgba(255, 107, 87, 0.12);
+  --ok: #34c98f;
+  --ok-soft: rgba(52, 201, 143, 0.12);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-text-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --color-critical: var(--critical);
+  --color-critical-soft: var(--critical-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --font-sans: var(--font-plex-sans);
+  --font-mono: var(--font-plex-mono);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans), -apple-system, "Segoe UI", sans-serif;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+/* Subtle glass-card pattern reused across model pickers, panels, empty states */
+.glass-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.glass-card:hover {
+  border-color: color-mix(in srgb, var(--border) 50%, var(--accent));
+}

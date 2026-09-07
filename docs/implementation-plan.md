@@ -4,6 +4,34 @@ Based on [`docs/research/notes.md`](research/notes.md). This is the plan before 
 application code; it will be revised once the authenticated-flow screenshots come in
 (dashboard, history, checkout, a real generation) — those sections are marked below.
 
+## The feel, not just the spec
+
+Screenshots of the authenticated app (from the user's own account — see
+[`research/notes.md`](research/notes.md#authenticated-walkthrough-screenshots-from-the-users-own-account-logged-in))
+changed how I'd describe this product. It isn't "form with a submit button that calls
+an API" — the details that make it feel like a real creative tool:
+
+- **The output panel is never empty.** Logged out or before your first generation, it
+  shows a real, captioned example ("EXAMPLE" + the prompt that made it) for whatever
+  model/style is currently selected, muted-autoplay if video, with a one-tap
+  hide/show. You always see what you're about to pay credits for.
+- **A second creative layer sits below the model picker** — cinematographic Motion
+  presets (Slow zoom in, Arc orbit, Dolly push-in...) grouped by Camera/Atmosphere, each
+  with a plain-English one-liner. It turns "describe your video" from a blank-page
+  problem into a menu problem, which is a big perceived-effort reduction for very little
+  build cost (they're just prompt-steering strings).
+- **The model grid is context-aware**, not a static list: switching Text→Image mode on
+  the video studio silently drops Sora and adds a "Start frame" upload slot. Constraints
+  are enforced by what's *offered*, not by disabling buttons and showing an error.
+- **Empty states are designed, not blank.** History's zero-state has an icon, a
+  sentence, and a CTA back into the exact studio you'd use next — never a bare "no data."
+- **Every top-level page keeps the same chrome** (nav, credit chip once logged in,
+  avatar, language selector) so nothing ever feels like a separate app bolted on.
+
+None of this is hard to build; it's just easy to *skip* under time pressure because it's
+not in any single API contract. Treating it as part of P0 (below), not polish, is the
+main plan change from the first draft.
+
 ## Goal
 
 Rebuild the product experience faithfully — same sitemap, same generation UX, same
@@ -17,16 +45,19 @@ Runway access, and that swap is disclosed in the UI copy, not hidden.
 |---|---|---|
 | Framework | Next.js (App Router) + TypeScript | One codebase for pages + API routes, fast to scaffold, deploys cleanly to Vercel |
 | Styling | Tailwind CSS | Matches the dark/glassmorphism look quickly, no design-system build cost |
-| Auth + DB + Storage | Supabase (free tier) | Built-in **email OTP auth** maps directly onto the observed passwordless flow; Postgres for the credit ledger; Storage bucket for generated media |
-| Payments | Stripe, **test mode** | Real checkout UI/flow without real charges; clearly labeled as a demo in the UI |
+| Database | **SQLite via Prisma** (Postgres at deploy time) | Zero signup, zero keys, runs immediately for local dev. Swaps to Vercel's one-click Storage → Postgres (connection string auto-filled, same account used to deploy) when we go live — user asked to avoid Supabase account/key setup |
+| Auth | **Custom email + one-time code**, no third-party auth service | Matches the observed passwordless flow's *shape*; no email-sending key available, so the code is shown on-screen rather than emailed — disclosed as a demo shortcut, not hidden. Session = signed cookie, secret generated locally into `.env.local` |
+| Storage | Keep the URL Pollinations returns | No blob/object storage service to configure; documented tradeoff (see Generation flow) |
+| Payments | **Dropped** — user asked to skip Stripe | `/upgrade` is a real pricing page with working buttons that say "demo — no checkout" rather than faking a charge |
 | Image generation | Pollinations `image.pollinations.ai` | Free, no key needed for basic use, reliable |
 | Video generation | Pollinations `gen.pollinations.ai` (Seedance / Veo-alpha / Wan-Fast) | Only realistic free path to actual text-to-video; treated as best-effort (alpha), with a graceful failure state — not a hard dependency for the demo to "work" |
 | Hosting | Vercel | Instant public URL, env vars for secrets, GitHub-connected auto-deploy |
 
-**Secrets:** Pollinations key, Supabase service-role key, Stripe secret key all live in
-Vercel/Supabase env vars only — never in the repo. `.env.example` documents the required
-names with placeholder values. (Note: the key shared in chat during planning is treated
-as burned — asked the user to rotate it — and is not used for real calls.)
+**Secrets:** only `POLLINATIONS_API_KEY` and a locally-generated session secret, both in a
+gitignored `.env.local` — never in the repo or in chat. [`.env.example`](../.env.example)
+documents the variable names with no values. (Note: the key shared in chat during
+planning is treated as burned — asked the user to rotate it — and is not used for real
+calls.)
 
 ## Sitemap (matches the original 1:1 for direct comparability)
 
@@ -60,11 +91,14 @@ honest about what's actually running:
 ## Feature priority
 
 **P0 — must work for the demo to be a real product:**
-email-OTP signup/login · landing page · video studio (model picker, prompt, params,
-live cost estimate, real generation, progress state, result playback) · image studio
-(same pattern) · credit balance visible in the header · history page (past generations,
-thumbnails, download) · pricing/upgrade page UI · about/contact/faq/privacy/terms ·
-responsive layout, dark theme matching the research screenshots.
+email-OTP signup/login · landing page · video studio (model picker filtered by
+text/image mode, Start-frame upload in image mode, Motion preset picker, prompt, params,
+live cost estimate, captioned example preview before generating, real generation,
+progress state, result playback) · image studio (same pattern, style presets) · credit
+balance chip + avatar in the header · history page (filter tabs, designed empty state,
+past generations with thumbnails, download) · pricing/upgrade page UI · FAQ as an
+accordion · about/contact/privacy/terms · responsive layout, dark theme matching the
+research screenshots.
 
 **P1 — do if time allows:**
 Stripe test-mode checkout actually granting credits via webhook · account
@@ -88,11 +122,12 @@ content-moderation pipeline (rely on upstream providers' own filters).
    the stored URL to the client.
 5. On failure/timeout: mark `failed`, release the hold (no charge), show a retry state.
 
-## Still open (pending your screenshots)
+## Still open
 
-Dashboard/home distinct from `/generate/video`? Exact `/history` layout (grid vs list,
-delete affordance)? Real checkout flow shape? These get folded in once shared — plan
-above is built to not need them to start P0 work.
+Account/profile settings and plan management, the real `/upgrade` checkout shape, and a
+full real-generation flow (progress → result, and what failure looks like) are still
+unseen — see [`research/notes.md`](research/notes.md#still-open). None of these block
+starting P0 work.
 
 ## Build phases (rough time budget, generous 12h window)
 
