@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/session";
+import { getValidatedSession } from "@/lib/session";
 import { db } from "@/lib/db";
 import { SignOutButton } from "@/components/sign-out-button";
 
 export default async function AccountPage() {
-  const session = await getSession();
+  const session = await getValidatedSession();
   if (!session.userId) {
     redirect("/auth/login?next=/account");
   }

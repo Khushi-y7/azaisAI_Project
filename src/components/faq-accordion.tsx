@@ -17,7 +17,7 @@ const FAQS = [
   },
   {
     q: "How do credits work?",
-    a: "Images cost 1 credit flat. Video costs 1 credit per second of requested duration (6-10s). New accounts get 8 free credits on signup, enough for 8 images, or most of one short video.",
+    a: "Images cost 1 credit flat. Video costs 1 credit per second of requested duration (6-10s). New accounts get 50 free credits on signup, enough for several videos and images, plenty of room to try everything out.",
   },
   {
     q: "Why did my generation fail?",
@@ -29,7 +29,7 @@ const FAQS = [
   },
   {
     q: "Is there a free trial?",
-    a: "Yes, every new account gets 8 credits immediately after signing up with just an email and a one-time code. No phone number, no card, unlike some confusing copy on the original product's own FAQ (which said phone verification, while its actual UI only ever asked for email).",
+    a: "Yes, every new account gets 50 credits immediately after signing up with just an email and a one-time code. No phone number, no card, unlike some confusing copy on the original product's own FAQ (which said phone verification, while its actual UI only ever asked for email).",
   },
   {
     q: "How do I download what I generate?",
